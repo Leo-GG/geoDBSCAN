@@ -101,6 +101,23 @@ if st.session_state.get('show_credentials_dialog', False):
             st.session_state.show_credentials_dialog = False
             st.experimental_rerun()
 
+# Button to fetch data
+if st.sidebar.button("Fetch Data"):
+    with st.spinner("Fetching data..."):
+        # Get database credentials
+        host, db_name, username, password = get_current_credentials()
+        
+        # Initialize database connector
+        db_connector = DatabaseConnector(host, db_name, username, password)
+        
+        # Fetch data
+        df = db_connector.fetch_data('mongo_listings')
+        
+        if df is not None:
+            # Store the data in session state for later use
+            st.session_state['df'] = df
+            st.success("Data fetched successfully!")
+
 # Clustering parameters
 max_cluster_diameter = st.sidebar.slider(
     "Max Cluster Diameter (km)",
@@ -212,23 +229,6 @@ def get_cluster_statistics(df):
         })
     
     return pd.DataFrame(stats)
-
-# Button to fetch data
-if st.sidebar.button("Fetch Data"):
-    with st.spinner("Fetching data..."):
-        # Get database credentials
-        host, db_name, username, password = get_current_credentials()
-        
-        # Initialize database connector
-        db_connector = DatabaseConnector(host, db_name, username, password)
-        
-        # Fetch data
-        df = db_connector.fetch_data('mongo_listings')
-        
-        if df is not None:
-            # Store the data in session state for later use
-            st.session_state['df'] = df
-            st.success("Data fetched successfully!")
 
 # Button to trigger clustering
 if st.sidebar.button("Run Clustering"):
@@ -383,7 +383,7 @@ if 'df' in st.session_state:
             st.plotly_chart(fig, use_container_width=True)
 else:
     # Display instructions if no data is loaded yet
-    st.info("👈 Adjust the parameters in the sidebar and click 'Fetch Data' to start.")
+    st.info("👈 Click 'Fetch Data' to start.  Adjust the parameters and click 'Run Clustering' to cluster the data.")
 
 # Add explanation of the clustering method
 with st.sidebar.expander("About the Clustering Method", expanded=False):
