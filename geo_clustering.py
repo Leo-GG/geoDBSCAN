@@ -223,12 +223,18 @@ class GeoClusterer:
         
         # Only compute pairwise distances if there are at least 2 points
         if len(coordinates) > 1:
+            found_non_zero = False
             for i in range(len(coordinates)):
+                if found_non_zero:
+                    break
                 for j in range(i + 1, len(coordinates)):
                     distance = haversine_metric(coordinates[i], coordinates[j])
                     max_distance = max(max_distance, distance)
+                    if distance > 0:
+                        found_non_zero = True
+                        break
         
-        logger.info(f"Maximum distance between any two points: {max_distance} km")
+        logger.info(f"Found distance larger than 0: {max_distance} km")
         
         # Adjust min_samples based on target_cluster_diameter only if max_distance > 0
         if max_distance > 0 and target_cluster_diameter_km is not None and target_cluster_diameter_km > 0:
