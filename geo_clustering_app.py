@@ -32,19 +32,74 @@ This app visualizes geographical clusters from the mongo_listings database.
 Adjust the clustering parameters to see how they affect the resulting clusters.
 """)
 
+# Initialize session state for custom credentials if not already present
+if 'use_custom_credentials' not in st.session_state:
+    st.session_state.use_custom_credentials = False
+    st.session_state.custom_host = ""
+    st.session_state.custom_db_name = ""
+    st.session_state.custom_username = ""
+    st.session_state.custom_password = ""
+
+# Function to reset to default credentials
+def reset_to_default_credentials():
+    st.session_state.use_custom_credentials = False
+    st.success("Reset to default credentials from .env file")
+
 # Sidebar for parameters
 st.sidebar.header("Clustering Parameters")
 
-# Database connection parameters
-st.sidebar.subheader("Database Connection")
-with st.sidebar.expander("Database Settings", expanded=False):
-    host = st.text_input(
-        "Host URL", 
-        value=os.getenv("DB_HOST", "http://reservation-history.c2wevclshsed.us-east-1.rds.amazonaws.com")
-    )
-    db_name = st.text_input("Database Name", value=os.getenv("DB_NAME", "reservation_history"))
-    username = st.text_input("Username", value=os.getenv("DB_USERNAME", "admin-user-2"))
-    password = st.text_input("Password", value=os.getenv("DB_PASSWORD", "k#8zP@vW7q$Y2fN5xG!e"), type="password")
+# Add database credentials button
+with st.sidebar.expander("Database Options", expanded=False):
+    # Create columns for buttons
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Button to open credentials dialog
+        if st.button("Change DB Credentials"):
+            st.session_state.show_credentials_dialog = True
+    
+    with col2:
+        # Button to reset to default credentials
+        if st.button("Reset to Default"):
+            reset_to_default_credentials()
+    
+    # Show indicator of which credentials are being used
+    if st.session_state.use_custom_credentials:
+        st.info("Using custom database credentials")
+    else:
+        st.info("Using default credentials from .env file")
+
+# Credentials dialog
+if st.session_state.get('show_credentials_dialog', False):
+    with st.form(key='credentials_form'):
+        st.subheader("Enter New Database Credentials")
+        
+        new_host = st.text_input("Host URL", value="")
+        new_db_name = st.text_input("Database Name", value="")
+        new_username = st.text_input("Username", value="")
+        new_password = st.text_input("Password", type="password", value="")
+        
+        # Form submission buttons
+        col1, col2 = st.columns(2)
+        with col1:
+            submit = st.form_submit_button("Save")
+        with col2:
+            cancel = st.form_submit_button("Cancel")
+        
+        if submit:
+            # Save the new credentials to session state
+            st.session_state.custom_host = new_host
+            st.session_state.custom_db_name = new_db_name
+            st.session_state.custom_username = new_username
+            st.session_state.custom_password = new_password
+            st.session_state.use_custom_credentials = True
+            st.session_state.show_credentials_dialog = False
+            st.success("Custom credentials saved")
+            st.experimental_rerun()
+        
+        if cancel:
+            st.session_state.show_credentials_dialog = False
+            st.experimental_rerun()
 
 # Clustering parameters
 max_cluster_diameter = st.sidebar.slider(
@@ -65,11 +120,32 @@ target_cluster_diameter = st.sidebar.slider(
     help="Desired average size for clusters (not enforced, but guides optimization)"
 )
 
+# Function to get current database credentials
+def get_current_credentials():
+    """Get the current database credentials based on session state"""
+    if st.session_state.use_custom_credentials:
+        return (
+            st.session_state.custom_host,
+            st.session_state.custom_db_name,
+            st.session_state.custom_username,
+            st.session_state.custom_password
+        )
+    else:
+        return (
+            os.getenv("DB_HOST", ""),
+            os.getenv("DB_NAME", ""),
+            os.getenv("DB_USERNAME", ""),
+            os.getenv("DB_PASSWORD", "")
+        )
+
 # Function to load and cluster data
 @st.cache_data(ttl=300)  # Cache for 5 minutes
-def load_and_cluster_data(host, db_name, username, password, max_diameter, target_diameter):
+def load_and_cluster_data(max_diameter, target_diameter):
     """Load data from database and perform clustering"""
     try:
+        # Get database credentials
+        host, db_name, username, password = get_current_credentials()
+        
         # Initialize database connector
         db_connector = DatabaseConnector(host, db_name, username, password)
         
@@ -140,8 +216,13 @@ def get_cluster_statistics(df):
 # Button to fetch data
 if st.sidebar.button("Fetch Data"):
     with st.spinner("Fetching data..."):
-        # Load data
+        # Get database credentials
+        host, db_name, username, password = get_current_credentials()
+        
+        # Initialize database connector
         db_connector = DatabaseConnector(host, db_name, username, password)
+        
+        # Fetch data
         df = db_connector.fetch_data('mongo_listings')
         
         if df is not None:
@@ -177,7 +258,6 @@ if st.sidebar.button("Run Clustering"):
         else:
             # Load data and cluster
             df, df_clustered, cluster_stats = load_and_cluster_data(
-                host, db_name, username, password, 
                 max_cluster_diameter, target_cluster_diameter
             )
             
