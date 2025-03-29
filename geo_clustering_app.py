@@ -45,6 +45,24 @@ def reset_to_default_credentials():
     st.session_state.use_custom_credentials = False
     st.success("Reset to default credentials from .env file")
 
+# Function to get current database credentials
+def get_current_credentials():
+    """Get the current database credentials based on session state"""
+    if st.session_state.use_custom_credentials:
+        return (
+            st.session_state.custom_host,
+            st.session_state.custom_db_name,
+            st.session_state.custom_username,
+            st.session_state.custom_password
+        )
+    else:
+        return (
+            os.getenv("DB_HOST", ""),
+            os.getenv("DB_NAME", ""),
+            os.getenv("DB_USERNAME", ""),
+            os.getenv("DB_PASSWORD", "")
+        )
+
 # Sidebar for parameters
 st.sidebar.header("Clustering Parameters")
 
@@ -136,24 +154,6 @@ target_cluster_diameter = st.sidebar.slider(
     step=0.1,
     help="Desired average size for clusters (not enforced, but guides optimization)"
 )
-
-# Function to get current database credentials
-def get_current_credentials():
-    """Get the current database credentials based on session state"""
-    if st.session_state.use_custom_credentials:
-        return (
-            st.session_state.custom_host,
-            st.session_state.custom_db_name,
-            st.session_state.custom_username,
-            st.session_state.custom_password
-        )
-    else:
-        return (
-            os.getenv("DB_HOST", ""),
-            os.getenv("DB_NAME", ""),
-            os.getenv("DB_USERNAME", ""),
-            os.getenv("DB_PASSWORD", "")
-        )
 
 # Function to load and cluster data
 @st.cache_data(ttl=300)  # Cache for 5 minutes
