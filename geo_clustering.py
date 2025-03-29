@@ -215,11 +215,11 @@ class GeoClusterer:
             epsilon = 1e-10
         
         # Adjust min_samples based on target_cluster_diameter if provided
-        min_samples = 2  # Default: at least 2 points to form a cluster
+        min_samples = 1  # Default: a single point can make a cluster
         if target_cluster_diameter_km is not None and target_cluster_diameter_km > 0:
             # Heuristic: adjust min_samples based on the ratio of max to target diameter
             ratio = max(1, max_cluster_diameter_km / target_cluster_diameter_km)
-            min_samples = max(2, int(2 * ratio))
+            min_samples = max(1, int(2 * ratio))
         
         # Apply DBSCAN clustering with Haversine distance
         logger.info(f"Running DBSCAN with eps={epsilon}, min_samples={min_samples}")
