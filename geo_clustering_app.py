@@ -329,4 +329,4 @@ with st.sidebar.expander("About the Clustering Method", expanded=False):
 
 # Footer
 st.sidebar.markdown("---")
-st.sidebar.markdown("2025 Geo Clustering App")
+st.sidebar.markdown("2025 Geo Clustering App | [GitHub](https://github.com/leo-gg)")
