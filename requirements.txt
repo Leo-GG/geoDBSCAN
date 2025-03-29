@@ -6,3 +6,4 @@ sqlalchemy==2.0.23
 plotly==5.18.0
 pydeck==0.8.0
 urllib3==2.1.0
+python-dotenv==1.0.0

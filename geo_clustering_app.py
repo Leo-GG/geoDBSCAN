@@ -12,6 +12,11 @@ import pydeck as pdk
 import plotly.express as px
 import plotly.graph_objects as go
 from geo_clustering import DatabaseConnector, GeoClusterer, GeoUtils
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Set page configuration
 st.set_page_config(
@@ -35,11 +40,11 @@ st.sidebar.subheader("Database Connection")
 with st.sidebar.expander("Database Settings", expanded=False):
     host = st.text_input(
         "Host URL", 
-        value="http://reservation-history.c2wevclshsed.us-east-1.rds.amazonaws.com"
+        value=os.getenv("DB_HOST", "http://reservation-history.c2wevclshsed.us-east-1.rds.amazonaws.com")
     )
-    db_name = st.text_input("Database Name", value="reservation_history")
-    username = st.text_input("Username", value="admin-user-2")
-    password = st.text_input("Password", value="k#8zP@vW7q$Y2fN5xG!e", type="password")
+    db_name = st.text_input("Database Name", value=os.getenv("DB_NAME", "reservation_history"))
+    username = st.text_input("Username", value=os.getenv("DB_USERNAME", "admin-user-2"))
+    password = st.text_input("Password", value=os.getenv("DB_PASSWORD", "k#8zP@vW7q$Y2fN5xG!e"), type="password")
 
 # Clustering parameters
 max_cluster_diameter = st.sidebar.slider(
@@ -136,7 +141,8 @@ def get_cluster_statistics(df):
 if st.sidebar.button("Fetch Data"):
     with st.spinner("Fetching data..."):
         # Load data
-        df = DatabaseConnector(host, db_name, username, password).fetch_data('mongo_listings')
+        db_connector = DatabaseConnector(host, db_name, username, password)
+        df = db_connector.fetch_data('mongo_listings')
         
         if df is not None:
             # Store the data in session state for later use
@@ -323,4 +329,4 @@ with st.sidebar.expander("About the Clustering Method", expanded=False):
 
 # Footer
 st.sidebar.markdown("---")
-st.sidebar.markdown("© 2025 Geo Clustering App")
+st.sidebar.markdown("2025 Geo Clustering App")

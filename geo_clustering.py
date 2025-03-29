@@ -13,6 +13,11 @@ import math
 from typing import List, Dict, Union, Optional, Tuple, Any
 from urllib.parse import quote_plus
 import logging
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -64,10 +69,10 @@ class DatabaseConnector:
     
     def __init__(
         self,
-        host: str = "http://reservation-history.c2wevclshsed.us-east-1.rds.amazonaws.com",
-        db_name: str = "reservation_history",
-        username: str = "admin-user-2",
-        password: str = "k#8zP@vW7q$Y2fN5xG!e"
+        host: str,
+        db_name: str,
+        username: str,
+        password: str
     ):
         """
         Initialize the database connector.
@@ -264,10 +269,10 @@ class GeoClusterer:
 
 
 def cluster_mongo_listings(
-    host: str = "http://reservation-history.c2wevclshsed.us-east-1.rds.amazonaws.com",
-    db_name: str = "reservation_history",
-    username: str = "admin-user-2",
-    password: str = "k#8zP@vW7q$Y2fN5xG!e",
+    host: str,
+    db_name: str,
+    username: str,
+    password: str,
     max_cluster_diameter_km: float = 1.0,
     target_cluster_diameter_km: Optional[float] = None
 ) -> List[Dict[str, Any]]:
@@ -349,7 +354,11 @@ def explain_clustering_method() -> str:
 if __name__ == "__main__":
     try:
         # Example usage
-        clusters = cluster_mongo_listings(max_cluster_diameter_km=10.0)
+        host = os.getenv("DB_HOST", "http://mydb.example.us-east-1.rds.amazonaws.com")
+        db_name = os.getenv("DB_NAME", "mydb")
+        username = os.getenv("DB_USERNAME", "user")
+        password = os.getenv("DB_PASSWORD", "password")
+        clusters = cluster_mongo_listings(host, db_name, username, password, max_cluster_diameter_km=10.0)
         print(f"Found {len(clusters)} clusters")
         
         # Print explanation
