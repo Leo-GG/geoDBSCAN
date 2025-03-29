@@ -214,9 +214,24 @@ class GeoClusterer:
         if epsilon == 0:
             epsilon = 1e-10
         
-        # Adjust min_samples based on target_cluster_diameter if provided
+        # Default min_samples
         min_samples = 1  # Default: a single point can make a cluster
-        if target_cluster_diameter_km is not None and target_cluster_diameter_km > 0:
+        
+        # Compute pairwise distances to check if points are separated
+        haversine_metric = HaversineDistance()
+        max_distance = 0
+        
+        # Only compute pairwise distances if there are at least 2 points
+        if len(coordinates) > 1:
+            for i in range(len(coordinates)):
+                for j in range(i + 1, len(coordinates)):
+                    distance = haversine_metric(coordinates[i], coordinates[j])
+                    max_distance = max(max_distance, distance)
+        
+        logger.info(f"Maximum distance between any two points: {max_distance} km")
+        
+        # Adjust min_samples based on target_cluster_diameter only if max_distance > 0
+        if max_distance > 0 and target_cluster_diameter_km is not None and target_cluster_diameter_km > 0:
             # Heuristic: adjust min_samples based on the ratio of max to target diameter
             ratio = max(1, max_cluster_diameter_km / target_cluster_diameter_km)
             min_samples = max(1, int(2 * ratio))
