@@ -2,7 +2,7 @@
 
 A Streamlit application for visualizing geographical clusters from listings data.
 
-**Live Demo**: [https://geodbscan.streamlit.app/](https://geodbscan.streamlit.app/)
+**Live Demo**: [[https://geodbscan.streamlit.app/](https://geodbscan-dmicrqvck3cvpu2g7nkgzz.streamlit.app/)]([https://geodbscan.streamlit.app/](https://geodbscan-dmicrqvck3cvpu2g7nkgzz.streamlit.app/))
 
 ## Overview
 
